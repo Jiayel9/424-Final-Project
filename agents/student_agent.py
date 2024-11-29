@@ -190,7 +190,6 @@ class StudentAgent(Agent):
     Returns:
     - int: The evaluated score of the board. (Positive for player 1, negative for player 2)
     """
-
  
     corners = [(0, 0), (0, board.shape[1] - 1), (board.shape[0] - 1, 0), (board.shape[0] - 1, board.shape[1] - 1)]
     weights = self.dynamic_weighting(board, color)
@@ -211,3 +210,9 @@ class StudentAgent(Agent):
     )
                          
     return total_board_score
+  
+
+# Ensure to test with:
+# python simulator.py --player_1 student_agent --player_2 random_agent --display
+
+# python simulator.py --player_1 student_agent --player_2 student_agent  --display

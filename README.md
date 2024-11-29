@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Reversi/Othello!
 
 **Project Description & Template** : https://www.overleaf.com/read/vnygbjryrxrt#7b70cb
@@ -116,3 +117,7 @@ This is a class project for COMP 424, McGill University, Fall 2024 (it was origi
 ## License
 
 [MIT](LICENSE)
+=======
+# 424-Final-Project
+Ty sh
+>>>>>>> 27e3000a1455f7e97220920c87fd64a3207397cb

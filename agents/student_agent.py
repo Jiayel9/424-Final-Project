@@ -135,9 +135,49 @@ class StudentAgent(Agent):
     time_taken = time.time() - start_time 
     print("My AI's turn took ", time_taken, "seconds.") 
 
-
     # Returning a random valid move as an example
     return best_move
+
+  def count_stable(self, board, color):
+    stable_count = 0
+    board_size = board.shape[0]
+
+    # Up Down Left Right + Diagonals
+    directions = [
+        (-1, 0), (1, 0), (0, -1), (0, 1),  # vertical and horizontal
+        (-1, -1), (-1, 1), (1, -1), (1, 1)  # diagonals
+    ]
+
+    # Helper function to check if a disc is stable
+    def is_stable(row, col):
+        for dr, dc in directions:
+            r, c = row, col
+            while 0 <= r < board_size and 0 <= c < board_size:
+                if board[r][c] != color:  # If we encounter an opponent's disc or empty spot
+                    break
+                r += dr
+                c += dc
+            else:
+                # If we exited without encountering an opponent's disc, direction is stable
+                continue
+            return False  # If any direction is unstable, the disc is not stable
+        return True
+    
+    # Check corners first, as they are always stable
+    corners = [(0, 0), (0, board_size - 1), (board_size - 1, 0), (board_size - 1, board_size - 1)]
+    for corner in corners:
+        r, c = corner
+        if board[r][c] == color:
+            stable_count += 1
+
+
+    # Check edges and interior discs
+    for r in range(board_size):
+        for c in range(board_size):
+            if board[r][c] == color and is_stable(r, c):
+                stable_count += 1
+
+    return stable_count
   
 
   def dynamic_weighting(self, board, color):
@@ -152,7 +192,7 @@ class StudentAgent(Agent):
     if game_progress < 0.4: # 0% - 30% of board is filled 
        weights_early = {
         "corner_weight": 10,
-        "mobility_weight": 10,
+        "mobility_weight": 8,
         "stability_weight": 0,
         "score_weight": 1
       }
@@ -206,6 +246,7 @@ class StudentAgent(Agent):
     total_board_score = (corner_score 
                          + corner_penalty 
                          + weights["mobility_weight"] * mobility_score
+                         + weights["stability_weight"] * self.count_stable(board, color)
                          + weights["score_weight"] * (player_score - opponent_score )
     )
                          

@@ -18,7 +18,19 @@ class StudentAgent(Agent):
     super(StudentAgent, self).__init__()
     self.name = "StudentAgent"
 
-  def alpha_beta_search(self, board, depth, alpha, beta, max_player, color, evaluate_board):
+  def order_moves(self, board, moves, color):
+    move_scores = []
+    for move in moves:
+        simulated_board = deepcopy(board)
+        execute_move(simulated_board, move, color)
+        score = self.evaluate_board(simulated_board, color, 0, 0)
+        move_scores.append((score, move))
+    # Sort moves based on the heuristic score in descending order
+    move_scores.sort(reverse=True)
+    ordered_moves = [move for score, move in move_scores]
+    return ordered_moves
+
+  def alpha_beta_search(self, board, depth, alpha, beta, max_player, color, evaluate_board, time_start, time_limit):
     """
     Let's use alpha-beta pruning to search the game tree
 
@@ -33,6 +45,9 @@ class StudentAgent(Agent):
 
     returns: best move score
     """
+    # Time limit check
+    if time.time() - time_start >= time_limit:
+      raise TimeoutError  
 
     # Base case: terminal state or depth-limit
     is_endgame, player_score, opponent_score = check_endgame(board, color, 3 - color)
@@ -41,20 +56,21 @@ class StudentAgent(Agent):
     
     # Get all valid moves for the current player
     valid_moves = get_valid_moves(board, color if max_player else 3 - color)
+    ordered_moves = self.order_moves(board, valid_moves, color if max_player else 3 - color)
 
     if not valid_moves:  # If no moves are valid, return the evaluation
         return evaluate_board(board, color, player_score, opponent_score)
     
     if max_player:
       best_score = float('-inf')
-      for move in valid_moves:
+      for move in ordered_moves:
 
         # let's simulate the move
         simulate_board = deepcopy(board)
         execute_move(simulate_board, move, color)
 
         # Recursive call for min player
-        score = self.alpha_beta_search(simulate_board, depth - 1, alpha, beta, False, color, evaluate_board)
+        score = self.alpha_beta_search(simulate_board, depth - 1, alpha, beta, False, color, evaluate_board, time_start, time_limit)
 
         best_score = max(best_score, score)
         alpha = max(alpha, best_score)
@@ -73,7 +89,7 @@ class StudentAgent(Agent):
           execute_move(simulated_board, move, 3 - color)
 
           # Recursive call for the maximizing player
-          score = self.alpha_beta_search(simulated_board, depth - 1, alpha, beta, True, color, evaluate_board)
+          score = self.alpha_beta_search(simulated_board, depth - 1, alpha, beta, True, color, evaluate_board, time_start, time_limit)
 
           best_score = min(best_score, score)
           beta = min(beta, best_score)
@@ -102,40 +118,54 @@ class StudentAgent(Agent):
 
     Please check the sample implementation in agents/random_agent.py or agents/human_agent.py for more details.
     """
-    # let's see all our legal moves
-    legal_moves = get_valid_moves(board, player)
-
-    if not legal_moves:
-      return None
-    
+    # Initialize a few variables
+    time_start = time.time() 
+    time_limit = 1.99
+    depth = 1
     best_move = None
     best_score = float('-inf')
 
-    alpha = float('-inf')
-    beta = float('inf')
+    # let's see all our legal moves
+    legal_moves = get_valid_moves(board, player)
+    if not legal_moves:
+      return None
     
-    for move in legal_moves:
-        simulated_board = deepcopy(board)
-        execute_move(simulated_board, move, player)
+    try:
+      while time.time() - time_start < time_limit:
+        alpha = float('-inf')
+        beta = float('inf')
 
-        # Evaluate the move using alpha-beta
-        # Start at depth 3
-        score = self.alpha_beta_search(simulated_board, 2, alpha, beta, False, player, self.evaluate_board)
+        current_best_move = None
+        current_best_score = float('-inf')
 
-        if score > best_score:
-            best_score = score
-            best_move = move
+        for move in legal_moves:
+          simulated_board = deepcopy(board)
+          execute_move(simulated_board, move, player)
+          score = self.alpha_beta_search(simulated_board, depth, alpha, beta, False, player, self.evaluate_board, time_start, time_limit)
 
-        alpha = max(alpha, best_score)
+          if score > current_best_score:
+            current_best_score = score
+            current_best_move = move
+            alpha = max(alpha, current_best_score)
+        
+        
+        if current_best_score > best_score:
+              best_score = current_best_score
+              best_move = current_best_move
 
-    # Some simple code to help you with timing. Consider checking 
-    # time_taken during your search and breaking with the best answer
-    # so far when it nears 2 seconds.
-    start_time = time.time()  
-    time_taken = time.time() - start_time 
+        # If the  n + 1 depth shows no improvement, no need to keep checking
+        # May reconsider this, as sometimes it takes multiple depths 
+        if current_best_score <= best_score:
+          depth += 2
+        else:
+          depth += 1
+    except TimeoutError:
+       pass
+    
+    time_taken = time.time() - time_start 
     print("My AI's turn took ", time_taken, "seconds.") 
 
-    # Returning a random valid move as an example
+    print(best_score)
     return best_move
 
   def count_stable(self, board, color):
@@ -199,7 +229,7 @@ class StudentAgent(Agent):
        return weights_early
     elif game_progress < 0.8:
        weights_mid = {
-          "corner_weight": 15,
+          "corner_weight": 20,
           "mobility_weight": 10,
           "stability_weight": 5,
           "score_weight": 1

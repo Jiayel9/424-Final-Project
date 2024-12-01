@@ -137,36 +137,37 @@ class StudentAgent(Agent):
     if not legal_moves:
       return None
     
-    
-    while time.time() - time_start < time_limit:
-      alpha = float('-inf')
-      beta = float('inf')
+    try:
+      while time.time() - time_start < time_limit:
+        alpha = float('-inf')
+        beta = float('inf')
 
-      current_best_move = None
-      current_best_score = float('-inf')
+        current_best_move = None
+        current_best_score = float('-inf')
 
-      for move in legal_moves:
-        simulated_board = deepcopy(board)
-        execute_move(simulated_board, move, player)
-        score = self.alpha_beta_search(simulated_board, depth, alpha, beta, False, player, self.evaluate_board, time_start, time_limit)
+        for move in legal_moves:
+          simulated_board = deepcopy(board)
+          execute_move(simulated_board, move, player)
+          score = self.alpha_beta_search(simulated_board, depth, alpha, beta, False, player, self.evaluate_board, time_start, time_limit)
 
-        if score > current_best_score:
-          current_best_score = score
-          current_best_move = move
-          alpha = max(alpha, current_best_score)
-      
-      
-      if current_best_score > best_score:
-        best_score = current_best_score
-        best_move = current_best_move
+          if score > current_best_score:
+            current_best_score = score
+            current_best_move = move
+            alpha = max(alpha, current_best_score)
+        
+        
+        if current_best_score > best_score:
+          best_score = current_best_score
+          best_move = current_best_move
 
-      # If the n + 1, matta fact don't stop we check deeper
-      # May reconsider this, as sometimes it takes multiple depths 
-      if current_best_score <= best_score:
-        depth += 2
-      else:
-        depth += 1
-    
+        # If the n + 1, matta fact don't stop we check deeper
+        # May reconsider this, as sometimes it takes multiple depths 
+        if current_best_score <= best_score:
+          depth += 2
+        else:
+          depth += 1
+    except TimeoutError:
+      pass
     
     time_taken = time.time() - time_start 
     print("My AI's turn took ", time_taken, "seconds.") 

@@ -80,7 +80,7 @@ class StudentAgent(Agent):
         # Recursive call for min player
         score = self.alpha_beta_search(simulate_board, depth - 1, alpha, beta, False, color, evaluate_board, time_start, time_limit)
 
-        best_score = max(max_eval, score)
+        max_eval = max(max_eval, score)
         alpha = max(alpha, max_eval)
 
         # Prune if beta is less than or equal to alpha
@@ -98,7 +98,7 @@ class StudentAgent(Agent):
         # Recursive call for the max player
         score = self.alpha_beta_search(simulated_board, depth - 1, alpha, beta, True, color, evaluate_board, time_start, time_limit)
 
-        best_score = min(min_eval, score)
+        min_eval = min(min_eval, score)
         beta = min(beta, min_eval)
 
         # Prune if beta is less than or equal to alpha

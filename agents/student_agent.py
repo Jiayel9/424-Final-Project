@@ -20,11 +20,13 @@ class StudentAgent(Agent):
 
   def order_moves(self, board, moves, color):
     move_scores = []
+
     for move in moves:
-        simulated_board = deepcopy(board)
-        execute_move(simulated_board, move, color)
-        score = self.evaluate_board(simulated_board, color, 0, 0)
-        move_scores.append((score, move))
+      simulated_board = deepcopy(board)
+      execute_move(simulated_board, move, color)
+      score = self.evaluate_board(simulated_board, color, 0, 0)
+      move_scores.append((score, move))
+
     # Sort moves based on the heuristic score in descending order
     move_scores.sort(reverse=True)
     ordered_moves = [move for score, move in move_scores]
@@ -45,6 +47,7 @@ class StudentAgent(Agent):
 
     returns: best move score
     """
+
     # Time limit check
     if time.time() - time_start >= time_limit:
       raise TimeoutError  
@@ -84,19 +87,19 @@ class StudentAgent(Agent):
     else: 
       best_score = float('inf')
       for move in valid_moves:
-          # Simulate the move
-          simulated_board = deepcopy(board)
-          execute_move(simulated_board, move, 3 - color)
+        # Simulate the move
+        simulated_board = deepcopy(board)
+        execute_move(simulated_board, move, 3 - color)
 
-          # Recursive call for the maximizing player
-          score = self.alpha_beta_search(simulated_board, depth - 1, alpha, beta, True, color, evaluate_board, time_start, time_limit)
+        # Recursive call for the maximizing player
+        score = self.alpha_beta_search(simulated_board, depth - 1, alpha, beta, True, color, evaluate_board, time_start, time_limit)
 
-          best_score = min(best_score, score)
-          beta = min(beta, best_score)
+        best_score = min(best_score, score)
+        beta = min(beta, best_score)
 
-          # Prune if beta is less than or equal to alpha
-          if beta <= alpha:
-              break
+        # Prune if beta is less than or equal to alpha
+        if beta <= alpha:
+            break
 
       return best_score
 
@@ -150,10 +153,10 @@ class StudentAgent(Agent):
         
         
         if current_best_score > best_score:
-              best_score = current_best_score
-              best_move = current_best_move
+          best_score = current_best_score
+          best_move = current_best_move
 
-        # If the  n + 1 depth shows no improvement, no need to keep checking
+        # If the n + 1, matta fact don't stop we check deeper
         # May reconsider this, as sometimes it takes multiple depths 
         if current_best_score <= best_score:
           depth += 2
@@ -174,24 +177,36 @@ class StudentAgent(Agent):
 
     # Up Down Left Right + Diagonals
     directions = [
-        (-1, 0), (1, 0), (0, -1), (0, 1),  # vertical and horizontal
-        (-1, -1), (-1, 1), (1, -1), (1, 1)  # diagonals
+      (-1, 0), (1, 0), (0, -1), (0, 1),  # vertical and horizontal
+      (-1, -1), (-1, 1), (1, -1), (1, 1)  # diagonals
     ]
 
-    # Helper function to check if a disc is stable
+    # Helper function to check if a piece is stable
     def is_stable(row, col):
-        for dr, dc in directions:
-            r, c = row, col
-            while 0 <= r < board_size and 0 <= c < board_size:
-                if board[r][c] != color:  # If we encounter an opponent's disc or empty spot
-                    break
-                r += dr
-                c += dc
-            else:
-                # If we exited without encountering an opponent's disc, direction is stable
-                continue
-            return False  # If any direction is unstable, the disc is not stable
-        return True
+      """
+      Takes row, col of piece as input
+      Returns whether or not this piece is stable 
+
+      Note: If there is a piece adjacent to the piece, or empty space the piece is unstable
+      """
+      for dr, dc in directions:
+        r, c = row, col
+
+        # check if move is within bounds
+        while 0 <= r < board_size and 0 <= c < board_size:
+          # empty spot or opponent piece, break
+          if board[r][c] != color: 
+              break
+          
+          r += dr
+          c += dc
+        else:
+          # If we exited without encountering an opponent's piece, direction is stable
+          # continue to check other directions
+          continue 
+
+        return False  # If any direction is unstable, the piece is not stable
+      return True
     
     # Check corners first, as they are always stable
     corners = [(0, 0), (0, board_size - 1), (board_size - 1, 0), (board_size - 1, board_size - 1)]
@@ -201,7 +216,7 @@ class StudentAgent(Agent):
             stable_count += 1
 
 
-    # Check edges and interior discs
+    # Check edges and interior pieces
     for r in range(board_size):
         for c in range(board_size):
             if board[r][c] == color and is_stable(r, c):
@@ -287,3 +302,5 @@ class StudentAgent(Agent):
 # python simulator.py --player_1 student_agent --player_2 random_agent --display
 
 # python simulator.py --player_1 student_agent --player_2 student_agent  --display
+# python simulator.py --player_1 student_agent --player_2 human_agent  --display
+# python simulator.py --player_1 student_agent --player_2 gpt_greedy_corners_agent --display --autoplay --autoplay_runs 1 --board_size_min 6 --board_size_max 10

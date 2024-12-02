@@ -238,17 +238,17 @@ class StudentAgent(Agent):
     total_positions = board.shape[0] * board.shape[1] # Shape -> (row, col)
     game_progress = total_pieces/total_positions # pieces/positions
 
-    if game_progress < 0.4: # 0% - 30% of board is filled 
+    if game_progress < 0.3: # 0% - 30% of board is filled 
        weights_early = {
         "corner_weight": 10,
         "mobility_weight": 8,
-        "stability_weight": 0,
+        "stability_weight": 1,
         "score_weight": 1
       }
        return weights_early
-    elif game_progress < 0.8:
+    elif game_progress < 0.7:
        weights_mid = {
-          "corner_weight": 20,
+          "corner_weight": 15,
           "mobility_weight": 10,
           "stability_weight": 5,
           "score_weight": 1
@@ -256,7 +256,7 @@ class StudentAgent(Agent):
        return weights_mid
     else:  # Late game! Final phases
       weights_late = {
-          "corner_weight": 30,
+          "corner_weight": 25,
           "mobility_weight": 2,
           "stability_weight": 10,
           "score_weight": 5

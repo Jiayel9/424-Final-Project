@@ -128,7 +128,9 @@ class StudentAgent(Agent):
     # Initialize a few variables
     time_start = time.time() 
     time_limit = 1.99 
-    depth = 1 
+
+    # 6, 8, 10, 12 accounts for board sizes
+    depth = [6, 4, 3, 3][board.shape[0]-6] # This way you can reduce the search time by starting with higher depths for lower boards
     best_move = None 
     best_score = float('-inf')
 

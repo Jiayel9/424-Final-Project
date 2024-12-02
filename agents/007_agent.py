@@ -1,0 +1,197 @@
+# Student agent: Add your own agent here
+from agents.agent import Agent
+from store import register_agent
+import sys
+import numpy as np
+from copy import deepcopy
+import time
+from helpers import random_move, count_capture, execute_move, check_endgame, get_valid_moves
+
+@register_agent("007")
+class StudentAgent(Agent):
+  """
+  A class for your implementation. Feel free to use this class to
+  add any helper functionalities needed for your agent.
+  """
+
+  def __init__(self):
+    super(StudentAgent, self).__init__()
+    self.name = "007"
+
+    # Implement my heuristic here!
+  def heuristic_eval_board(self, board, color, player_score, opponent_score):
+    """
+    Evaluate the board state based on multiple factors. This is your heuristic
+
+    Parameters:
+    - board: 2D numpy array representing the game board.
+    - color: Integer representing the agent's color (1 for Player 1/Blue, 2 for Player 2/Brown).
+    - player_score: Score of the current player (the number of pieces the player has on the board)
+    - opponent_score: Score of the opponent (the number of pieces the other player has on the board)
+
+    Returns:
+    - int: The evaluated score of the board. (Positive for player 1, negative for player 2)
+    """
+ 
+    corners = [(0, 0), (0, board.shape[1] - 1), (board.shape[0] - 1, 0), (board.shape[0] - 1, board.shape[1] - 1)]
+    weights = self.dynamic_weighting(board, color)
+
+    # 10 points for the current player for every corner they control (Have a piece there)
+    corner_score = sum(1 for corner in corners if board[corner] == color) * weights["corner_weight"]
+    corner_penalty = sum(1 for corner in corners if board[corner] == 3 - color) * -weights["corner_weight"]
+
+    # Mobility: the number of moves the opponent can make
+    opponent_moves = len(get_valid_moves(board, 3 - color))
+    mobility_score = -opponent_moves
+
+    
+    total_board_score = (
+      corner_score 
+    + corner_penalty 
+    + weights["mobility_weight"] * mobility_score
+    + weights["stability_weight"] * self.count_stable(board, color)
+    + weights["score_weight"] * (player_score - opponent_score )
+    )
+    
+    return total_board_score
+
+  def alpha_beta_search(self, board, depth, alpha, beta, max_player, color, heuristic_eval_board, time_start, time_limit):
+    """
+    Let's use alpha-beta pruning to search the game tree
+
+    parameters:
+    - board: Current game board : (numpy.array) numpy.array
+    - depth: Max depth for search, how many moves into the future do we want to see : int
+    - alpha: value for max player : int
+    - beta: value for min player : int
+    - color: agent color (1 or 2) : int
+    - eval_board: heuristic function that returns a score for a given board : fun 'a .... -> int
+
+
+    returns: best move score
+    """
+    # Alpha-Beta Pruning implementation inspired by
+    # "Simple Minimax with Alpha-Beta Pruning" by Sebastian Lague
+    # Source: https://www.youtube.com/watch?v=l-hh51ncgDI
+
+    # Time limit check
+    if time.time() - time_start >= time_limit:
+       raise TimeoutError  
+
+    # Base case: Evaluate the board when the game ends so the search algorithm can "see branch endgame scores"
+    is_endgame, player_score, opponent_score = check_endgame(board, color, 3 - color)
+    if is_endgame or depth == 0:
+       return heuristic_eval_board(board, color, player_score, opponent_score)
+    
+    # Get all valid moves for the current player
+    if max_player:
+       valid_moves = get_valid_moves(board, color)
+    else:
+       valid_moves = get_valid_moves(board, 3 - color)
+       
+    ordered_moves = self.order_moves(board, valid_moves, color if max_player else 3 - color)
+    if not valid_moves:  # If no moves are valid, return the evaluation
+        return heuristic_eval_board(board, color, player_score, opponent_score)
+    
+    if max_player:
+      max_eval = float('-inf')
+      for move in ordered_moves:
+        simulate_board = deepcopy(board)
+        execute_move(simulate_board, move, color)
+
+        # Recursive call for min player
+        score = self.alpha_beta_search(simulate_board, depth - 1, alpha, beta, False, color, heuristic_eval_board, time_start, time_limit)
+
+        max_eval = max(max_eval, score)
+        alpha = max(alpha, max_eval)
+
+        # Prune if beta is less than or equal to alpha
+        if beta <= alpha:
+            break
+
+      return max_eval
+    
+    else: 
+      min_eval = float('inf')
+      for move in ordered_moves:
+        simulated_board = deepcopy(board)
+        execute_move(simulated_board, move, 3 - color)
+
+        # Recursive call for the max player
+        score = self.alpha_beta_search(simulated_board, depth - 1, alpha, beta, True, color, heuristic_eval_board, time_start, time_limit)
+
+        min_eval = min(min_eval, score)
+        beta = min(beta, min_eval)
+
+        # Prune if beta is less than or equal to alpha
+        if beta <= alpha:
+            break
+
+      return min_eval
+
+  def step(self, board, player, opponent):
+    """
+    You can use the following variables to access the chess board:
+    - chess_board: a numpy array of shape (board_size, board_size)
+      where 0 represents an empty spot, 1 represents Player 1's discs (Blue),
+      and 2 represents Player 2's discs (Brown).
+    - player: 1 if this agent is playing as Player 1 (Blue), or 2 if playing as Player 2 (Brown).
+    - opponent: 1 if the opponent is Player 1 (Blue), or 2 if the opponent is Player 2 (Brown).
+
+    You should return a tuple (r,c), where (r,c) is the position where your agent
+    wants to place the next disc. Use functions in helpers to determine valid moves
+    and more helpful tools.
+    """
+    time_start = time.time()
+    time_limit = 1.99 
+
+     # 6, 8, 10, 12 accounts for board sizes
+    board_sizes = [6, 8, 10, 12]
+    depths = [5,4,3,2]
+    depth = depths[board_sizes.index(board.shape[0])] #Selects initial search depth based on board size
+
+
+    # Initialize overall best move variable
+    best_score = float('-inf')
+    best_move = None
+
+    try:
+       while time.time() - time_start < time_limit:
+        alpha = float('-inf') 
+        beta = float('inf') 
+
+        current_best_move = None 
+        current_best_score = float('-inf') 
+
+        # Recompute legal moves in each iteration
+        for move in get_valid_moves(board, player): 
+            simulated_board = deepcopy(board) 
+            execute_move(simulated_board, move, player) 
+            score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, player, self.heuristic_eval_board, time_start, time_limit)
+
+            if score > current_best_score:
+                current_best_score = score
+                current_best_move = move
+
+                # See if you can do better than this, helps pruning a lot!
+                alpha = max(alpha, current_best_score)
+
+        # Update the best move and score
+        if current_best_score > best_score:
+            best_score = current_best_score
+            best_move = current_best_move
+
+        depth += 1
+
+    except TimeoutError:
+       print("Timeout! Returning the best move found so far.")
+
+    time_taken = time.time() - time_start
+    print("My AI's turn took ", time_taken, "seconds.")
+
+    if not best_move:
+        print("No valid moves available. Passing the turn.")
+        return None
+    
+    print(best_score)
+    return best_move

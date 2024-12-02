@@ -91,7 +91,7 @@ class StudentAgent(Agent):
     
     else: 
       min_eval = float('inf')
-      for move in valid_moves:
+      for move in ordered_moves:
         simulated_board = deepcopy(board)
         execute_move(simulated_board, move, 3 - color)
 
@@ -152,7 +152,7 @@ class StudentAgent(Agent):
         for move in legal_moves: 
           simulated_board = deepcopy(board) 
           execute_move(simulated_board, move, player) 
-          score = self.alpha_beta_search(simulated_board, depth, alpha, beta, False, player, self.evaluate_board, time_start, time_limit)
+          score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, player, self.evaluate_board, time_start, time_limit)
         
           if score > current_best_score:
             current_best_score = score

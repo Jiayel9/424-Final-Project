@@ -154,6 +154,8 @@ class StudentAgent(Agent):
 
         best_value = float('-inf')
         best_move = None
+
+        # 6, 8, 10, 12
         depth = [5,4,4,3,3,3,3][board.shape[0]-6]
         move_order = []  # Store the best move from previous depths for ordering
         start_time = time.time()

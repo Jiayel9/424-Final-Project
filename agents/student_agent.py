@@ -127,9 +127,9 @@ class StudentAgent(Agent):
     """
     # Initialize a few variables
     time_start = time.time() 
-    time_limit = 1.99
-    depth = 1
-    best_move = None
+    time_limit = 1.99 
+    depth = 1 
+    best_move = None 
     best_score = float('-inf')
 
     # let's see all our legal moves
@@ -139,17 +139,17 @@ class StudentAgent(Agent):
     
     try:
       while time.time() - time_start < time_limit:
-        alpha = float('-inf')
-        beta = float('inf')
+        alpha = float('-inf') 
+        beta = float('inf') 
 
-        current_best_move = None
-        current_best_score = float('-inf')
+        current_best_move = None 
+        current_best_score = float('-inf') 
 
-        for move in legal_moves:
-          simulated_board = deepcopy(board)
-          execute_move(simulated_board, move, player)
+        for move in legal_moves: 
+          simulated_board = deepcopy(board) 
+          execute_move(simulated_board, move, player) 
           score = self.alpha_beta_search(simulated_board, depth, alpha, beta, False, player, self.evaluate_board, time_start, time_limit)
-
+        
           if score > current_best_score:
             current_best_score = score
             current_best_move = move
@@ -299,7 +299,7 @@ class StudentAgent(Agent):
     + weights["stability_weight"] * self.count_stable(board, color)
     + weights["score_weight"] * (player_score - opponent_score )
     )
-                         
+    
     return total_board_score
   
 

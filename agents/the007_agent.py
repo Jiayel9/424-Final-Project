@@ -7,7 +7,7 @@ from copy import deepcopy
 import time
 from helpers import random_move, count_capture, execute_move, check_endgame, get_valid_moves
 
-@register_agent("007")
+@register_agent("the007_agent")
 class StudentAgent(Agent):
   """
   A class for your implementation. Feel free to use this class to
@@ -16,7 +16,7 @@ class StudentAgent(Agent):
 
   def __init__(self):
     super(StudentAgent, self).__init__()
-    self.name = "007"
+    self.name = "the007_agent"
 
     # Implement my heuristic here!
   def heuristic_eval_board(self, board, color, player_score, opponent_score):
@@ -195,3 +195,11 @@ class StudentAgent(Agent):
     
     print(best_score)
     return best_move
+
+# TEST CASES
+
+# Old bot
+# python simulator.py --player_1 the007_agent --player_2 student_agent  --display
+
+# New tester
+# python simulator.py --player_1 the007_agent --player_2 tester_agent  --display

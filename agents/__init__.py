@@ -4,3 +4,4 @@ from .student_agent import StudentAgent
 from .gpt_greedy_corners_agent import StudentAgent
 from .isaac_agent import StudentAgent
 from .tester_agent import StudentAgent
+from .the007_agent import StudentAgent

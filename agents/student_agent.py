@@ -163,7 +163,7 @@ class StudentAgent(Agent):
         # If the n + 1, matta fact don't stop we check deeper
         # May reconsider this, as sometimes it takes multiple depths 
         if current_best_score <= best_score:
-          depth += 2
+          depth += 3
         else:
           depth += 1
     except TimeoutError:
@@ -312,3 +312,4 @@ class StudentAgent(Agent):
 
 
 # python simulator.py --player_1 student_agent --player_2 tester_agent --display --autoplay --autoplay_runs 1 --board_size_min 6 --board_size_max 10
+# python simulator.py --player_1 student_agent --player_2 tester_agent --display

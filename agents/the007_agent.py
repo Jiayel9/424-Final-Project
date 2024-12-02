@@ -51,6 +51,19 @@ class StudentAgent(Agent):
           "score_weight": 5
           }
       return weights_late
+    
+  def calculate_stability(self, board, color):
+    stable_count = 0
+
+     # Check corners first, as they are always stable
+    corners = [(0, 0), (0, board_size - 1), (board_size - 1, 0), (board_size - 1, board_size - 1)]
+    for corner in corners:
+        r, c = corner
+        if board[r][c] == color:
+            stable_count += 1
+
+
+    return stable_count
 
     # Implement my heuristic here!
   def heuristic_eval_board(self, board, color, player_score, opponent_score):

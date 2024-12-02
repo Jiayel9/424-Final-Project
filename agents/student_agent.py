@@ -180,57 +180,33 @@ class StudentAgent(Agent):
     return best_move
 
   def count_stable(self, board, color):
-    stable_count = 0
     board_size = board.shape[0]
-
-    # Up Down Left Right + Diagonals
-    directions = [
-      (-1, 0), (1, 0), (0, -1), (0, 1),  # vertical and horizontal
-      (-1, -1), (-1, 1), (1, -1), (1, 1)  # diagonals
-    ]
-
-    # Helper function to check if a piece is stable
-    def is_stable(row, col):
-      """
-      Takes row, col of piece as input
-      Returns whether or not this piece is stable 
-
-      Note: If there is a piece adjacent to the piece, or empty space the piece is unstable
-      """
-      for dr, dc in directions:
-        r, c = row, col
-
-        # check if move is within bounds
-        while 0 <= r < board_size and 0 <= c < board_size:
-          # empty spot or opponent piece, break
-          if board[r][c] != color: 
-              break
-          
-          r += dr
-          c += dc
-        else:
-          # If we exited without encountering an opponent's piece, direction is stable
-          # continue to check other directions
-          continue 
-
-        return False  # If any direction is unstable, the piece is not stable
-      return True
-    
-    # Check corners first, as they are always stable
-    corners = [(0, 0), (0, board_size - 1), (board_size - 1, 0), (board_size - 1, board_size - 1)]
-    for corner in corners:
-        r, c = corner
+    stability_map = np.zeros_like(board, dtype=bool)
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1),
+                  (-1, -1), (-1, 1), (1, -1), (1, 1)]
+    # Initialize stability map with corners
+    corners = [(0, 0), (0, board_size - 1), 
+               (board_size - 1, 0), (board_size - 1, board_size - 1)]
+    stable_discs = []
+    for r, c in corners:
         if board[r][c] == color:
-            stable_count += 1
-
-
-    # Check edges and interior pieces
-    for r in range(board_size):
-        for c in range(board_size):
-            if board[r][c] == color and is_stable(r, c):
-                stable_count += 1
-
+            stability_map[r][c] = True
+            stable_discs.append((r, c))
+    # Propagate stability
+    while stable_discs:
+        r, c = stable_discs.pop()
+        for dr, dc in directions:
+            nr, nc = r + dr, c + dc
+            if (0 <= nr < board_size and 0 <= nc < board_size and
+                not stability_map[nr][nc] and board[nr][nc] == color):
+                # Check if the disc is stable in this direction
+                if self.is_stable_in_direction(board, stability_map, nr, nc, dr, dc, color):
+                    stability_map[nr][nc] = True
+                    stable_discs.append((nr, nc))
+    # Count the stable discs
+    stable_count = np.sum(stability_map)
     return stable_count
+
   
 
   def dynamic_weighting(self, board, color):
@@ -318,3 +294,5 @@ class StudentAgent(Agent):
 
 
 # python simulator.py --player_1 student_agent --player_2 tester_agent --display --autoplay --autoplay_runs 1 --board_size_min 6 --board_size_max 10
+
+# python simulator.py --player_1 student_agent --player_2 tester_agent --display

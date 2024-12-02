@@ -179,6 +179,18 @@ class StudentAgent(Agent):
     print(best_score)
     return best_move
 
+
+  def is_stable_in_direction(self, board, stability_map, row, col, dr, dc, color):
+    board_size = board.shape[0]
+    r = row + dr  # Move to the neighboring cell
+    c = col + dc
+    while 0 <= r < board_size and 0 <= c < board_size:
+        if board[r][c] == 0 or (board[r][c] != color and not stability_map[r][c]):
+            return False
+        r += dr
+        c += dc
+    return True
+
   def count_stable(self, board, color):
     board_size = board.shape[0]
     stability_map = np.zeros_like(board, dtype=bool)

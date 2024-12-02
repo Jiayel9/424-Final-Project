@@ -202,12 +202,13 @@ class StudentAgent(Agent):
 
         # check if move is within bounds
         while 0 <= r < board_size and 0 <= c < board_size:
+          r += dr
+          c += dc
+
           # empty spot or opponent piece, break
           if board[r][c] != color: 
               break
-          
-          r += dr
-          c += dc
+    
         else:
           # If we exited without encountering an opponent's piece, direction is stable
           # continue to check other directions

@@ -131,7 +131,8 @@ class StudentAgent(Agent):
 
     # 6, 8, 10, 12 accounts for board sizes
     board_sizes = [6, 8, 10, 12]
-    depth = board_sizes.index(board.shape[0])
+    depths = [6,4,3,2]
+    depth = depths.index(board.shape[0]) #Selects initial search depth based on board size
     best_move = None 
     best_score = float('-inf')
 

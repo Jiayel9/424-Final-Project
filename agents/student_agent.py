@@ -309,3 +309,6 @@ class StudentAgent(Agent):
 # python simulator.py --player_1 student_agent --player_2 student_agent  --display
 # python simulator.py --player_1 student_agent --player_2 human_agent  --display
 # python simulator.py --player_1 student_agent --player_2 gpt_greedy_corners_agent --display --autoplay --autoplay_runs 1 --board_size_min 6 --board_size_max 10
+
+
+# python simulator.py --player_1 student_agent --player_2 tester_agent --display --autoplay --autoplay_runs 1 --board_size_min 6 --board_size_max 10

@@ -91,7 +91,7 @@ class StudentAgent(Agent):
     
     else: 
       min_eval = float('inf')
-      for move in valid_moves:
+      for move in ordered_moves:
         simulated_board = deepcopy(board)
         execute_move(simulated_board, move, 3 - color)
 
@@ -131,7 +131,7 @@ class StudentAgent(Agent):
 
     # 6, 8, 10, 12 accounts for board sizes
     board_sizes = [6, 8, 10, 12]
-    depths = [6,4,4,3]
+    depths = [6,4,3,2]
     depth = depths[board_sizes.index(board.shape[0])] #Selects initial search depth based on board size
     best_move = None 
     best_score = float('-inf')
@@ -152,7 +152,7 @@ class StudentAgent(Agent):
         for move in legal_moves: 
           simulated_board = deepcopy(board) 
           execute_move(simulated_board, move, player) 
-          score = self.alpha_beta_search(simulated_board, depth, alpha, beta, False, player, self.evaluate_board, time_start, time_limit)
+          score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, player, self.evaluate_board, time_start, time_limit)
         
           if score > current_best_score:
             current_best_score = score
@@ -167,7 +167,7 @@ class StudentAgent(Agent):
         # If the n + 1, matta fact don't stop we check deeper
         # May reconsider this, as sometimes it takes multiple depths 
         if current_best_score <= best_score:
-          depth += 3
+          depth += 2
         else:
           depth += 1
     except TimeoutError:
@@ -312,8 +312,9 @@ class StudentAgent(Agent):
 
 # python simulator.py --player_1 student_agent --player_2 student_agent  --display
 # python simulator.py --player_1 student_agent --player_2 human_agent  --display
-# python simulator.py --player_1 student_agent --player_2 gpt_greedy_corners_agent --display --autoplay --autoplay_runs 1 --board_size_min 6 --board_size_max 10
+# python simulator.py --player_1 student_agent --player_2 gpt_greedy_corners_agent --display --autoplay --autoplay_runs 10 --board_size_min 6 --board_size_max 10
+
+# python simulator.py --player_1 student_agent --player_2 isaac_agent --display --autoplay --autoplay_runs 10 --board_size_min 6 --board_size_max 10
 
 
 # python simulator.py --player_1 student_agent --player_2 tester_agent --display --autoplay --autoplay_runs 1 --board_size_min 6 --board_size_max 10
-# python simulator.py --player_1 student_agent --player_2 tester_agent --display

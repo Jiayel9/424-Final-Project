@@ -18,6 +18,40 @@ class StudentAgent(Agent):
     super(StudentAgent, self).__init__()
     self.name = "the007_agent"
 
+  def dynamic_weighting(self, board, color):
+    """
+    Takes board and color as input
+    Returns a dictionary of weights
+    """
+    total_pieces = np.sum(board != 0) # Total number of placed pieces
+    total_positions = board.shape[0] * board.shape[1] # Shape -> (row, col)
+    game_progress = total_pieces/total_positions # pieces/positions
+
+    if game_progress < 0.3: # 0% - 30% of board is filled 
+       weights_early = {
+        "corner_weight": 10,
+        "mobility_weight": 8,
+        "stability_weight": 1,
+        "score_weight": 1
+      }
+       return weights_early
+    elif game_progress < 0.7:
+       weights_mid = {
+          "corner_weight": 15,
+          "mobility_weight": 10,
+          "stability_weight": 5,
+          "score_weight": 1
+          }
+       return weights_mid
+    else:  # Late game! Final phases
+      weights_late = {
+          "corner_weight": 25,
+          "mobility_weight": 2,
+          "stability_weight": 10,
+          "score_weight": 5
+          }
+      return weights_late
+
     # Implement my heuristic here!
   def heuristic_eval_board(self, board, color, player_score, opponent_score):
     """
@@ -49,7 +83,7 @@ class StudentAgent(Agent):
       corner_score 
     + corner_penalty 
     + weights["mobility_weight"] * mobility_score
-    + weights["stability_weight"] * self.count_stable(board, color)
+    # + weights["stability_weight"] * self.count_stable(board, color)
     + weights["score_weight"] * (player_score - opponent_score )
     )
     
@@ -89,13 +123,12 @@ class StudentAgent(Agent):
     else:
        valid_moves = get_valid_moves(board, 3 - color)
        
-    ordered_moves = self.order_moves(board, valid_moves, color if max_player else 3 - color)
     if not valid_moves:  # If no moves are valid, return the evaluation
         return heuristic_eval_board(board, color, player_score, opponent_score)
     
     if max_player:
       max_eval = float('-inf')
-      for move in ordered_moves:
+      for move in valid_moves:
         simulate_board = deepcopy(board)
         execute_move(simulate_board, move, color)
 
@@ -113,7 +146,7 @@ class StudentAgent(Agent):
     
     else: 
       min_eval = float('inf')
-      for move in ordered_moves:
+      for move in valid_moves:
         simulated_board = deepcopy(board)
         execute_move(simulated_board, move, 3 - color)
 

@@ -236,18 +236,22 @@ class StudentAgent(Agent):
       alpha = float('-inf') 
       beta = float('inf')
 
-      legal_moves = get_valid_moves(board, color)
+    
+      try:
+        for move in get_valid_moves(board, color):
+            
+            simulated_board = deepcopy(board)
+            execute_move(simulated_board, move, color)
+            move_score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, color, self.heuristic_eval_board, time_start, time_limit)
+
+            if move_score > best_score:
+                best_score = move_score
+                best_move = move
+
+
+      except TimeoutError:
+        pass
       
-      for move in legal_moves:
-          
-          simulated_board = deepcopy(board)
-          execute_move(simulated_board, move, color)
-          move_score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, color, self.heuristic_eval_board, time_start, time_limit)
-
-          if move_score > best_score:
-              best_score = move_score
-              best_move = move
-
       # Return the best move found
       return best_move if best_move else random_move
 

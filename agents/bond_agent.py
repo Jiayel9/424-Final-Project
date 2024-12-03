@@ -233,9 +233,13 @@ class StudentAgent(Agent):
       best_score = float('-inf')
       best_move = None
 
+      alpha = float('-inf') 
+      beta = float('inf')
 
       legal_moves = get_valid_moves(board, color)
+      
       for move in legal_moves:
+          
           simulated_board = deepcopy(board)
           execute_move(simulated_board, move, color)
           move_score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, color, self.heuristic_eval_board, time_start, time_limit)

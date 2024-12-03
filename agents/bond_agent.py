@@ -31,7 +31,7 @@ class StudentAgent(Agent):
        weights_early = {
         "corner_weight": 10,
         "mobility_weight": 8,
-        "stability_weight": 6,
+        # "stability_weight": 6,
         "parity_weight": 1
       }
        return weights_early
@@ -39,7 +39,7 @@ class StudentAgent(Agent):
        weights_mid = {
           "corner_weight": 20,
           "mobility_weight": 12,
-          "stability_weight": 10,
+          # "stability_weight": 10,
           "parity_weight": 1
           }
        return weights_mid
@@ -47,7 +47,7 @@ class StudentAgent(Agent):
       weights_late = {
           "corner_weight": 30,
           "mobility_weight": 1,
-          "stability_weight": 15,
+          # "stability_weight": 15,
           "parity_weight": 5
           }
       return weights_late
@@ -104,6 +104,7 @@ class StudentAgent(Agent):
       )
 
     return corner_score
+
 
 
 
@@ -239,7 +240,6 @@ class StudentAgent(Agent):
     
       try:
         for move in get_valid_moves(board, color):
-            
             simulated_board = deepcopy(board)
             execute_move(simulated_board, move, color)
             move_score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, color, self.heuristic_eval_board, time_start, time_limit)
@@ -251,7 +251,7 @@ class StudentAgent(Agent):
 
       except TimeoutError:
         pass
-      
+
       # Return the best move found
       return best_move if best_move else random_move
 

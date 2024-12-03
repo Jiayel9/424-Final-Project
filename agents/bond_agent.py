@@ -169,7 +169,7 @@ class StudentAgent(Agent):
     # Base case: Evaluate the board when the game ends so the search algorithm can "see branch endgame scores"
     is_endgame, player_score, opponent_score = check_endgame(board, color, 3 - color)
     if is_endgame or depth == 0:
-        return heuristic_eval_board(board, color, player_score, opponent_score)
+        return heuristic_eval_board(board, color)
     
     # Get all valid moves for the current player
     if max_player:
@@ -178,7 +178,7 @@ class StudentAgent(Agent):
         valid_moves = get_valid_moves(board, 3 - color)
         
     if not valid_moves:  # If no moves are valid, return the evaluation
-        return heuristic_eval_board(board, color, player_score, opponent_score)
+        return heuristic_eval_board(board, color)
     
     if max_player:
       max_eval = float('-inf')
@@ -239,7 +239,7 @@ class StudentAgent(Agent):
           simulated_board = deepcopy(board)
           execute_move(simulated_board, move, color)
           _, player_score, opponent_score = check_endgame(simulated_board, color, 3 - color)
-          move_score = self.heuristic_eval_board(simulated_board, color, player_score, opponent_score)
+          move_score = self.heuristic_eval_board(simulated_board, color)
 
           if move_score > best_score:
               best_score = move_score

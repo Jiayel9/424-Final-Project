@@ -238,8 +238,7 @@ class StudentAgent(Agent):
       for move in legal_moves:
           simulated_board = deepcopy(board)
           execute_move(simulated_board, move, color)
-          _, player_score, opponent_score = check_endgame(simulated_board, color, 3 - color)
-          move_score = self.heuristic_eval_board(simulated_board, color)
+          move_score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, color, self.heuristic_eval_board, time_start, time_limit)
 
           if move_score > best_score:
               best_score = move_score

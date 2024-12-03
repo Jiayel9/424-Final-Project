@@ -75,17 +75,22 @@ class StudentAgent(Agent):
    parity_score = 100 * (difference_pieces/total_pieces)
    return parity_score
 
-def calculate_mobility(board, color):
-    """
-    Calculate Mobility
-    """
+  def calculate_mobility(self, board, color):
+      """
+      Calculate Mobility
+      """
 
-    max_actual_mobility = get_valid_moves(board, color)
-    min_actual_mobility = get_valid_moves(board, color)
+      max_actual_mobility = len(get_valid_moves(board, color))
+      min_actual_mobility = len(get_valid_moves(board, 3 - color))
 
-    if (max_actual_mobility + min_actual_mobility) != 0:
-        actual_mobility_score = 
-        100 * (max_actual_mobility - min_actual_mobility)/(max_actual_mobility + min_actual_mobility)
+      if (max_actual_mobility + min_actual_mobility) != 0:
+          actual_mobility_score = (
+          100 * (max_actual_mobility - min_actual_mobility)/(max_actual_mobility + min_actual_mobility)
+          )
+      else:
+        actual_mobility_score = 0
+
+      return actual_mobility_score
 
 
     # Implement my heuristic here!
@@ -114,6 +119,7 @@ def calculate_mobility(board, color):
     
     total_board_score = (
       parity_score * dynamic_weights["parity_weight"]
+      + mobility_score * dynamic_weights["mobility_weight"]
     )
     
     # printf("") print all the heuristic values
@@ -140,19 +146,19 @@ def calculate_mobility(board, color):
 
     # Time limit check
     if time.time() - time_start >= time_limit:
-       raise TimeoutError  
+        raise TimeoutError  
 
     # Base case: Evaluate the board when the game ends so the search algorithm can "see branch endgame scores"
     is_endgame, player_score, opponent_score = check_endgame(board, color, 3 - color)
     if is_endgame or depth == 0:
-       return heuristic_eval_board(board, color, player_score, opponent_score)
+        return heuristic_eval_board(board, color, player_score, opponent_score)
     
     # Get all valid moves for the current player
     if max_player:
-       valid_moves = get_valid_moves(board, color)
+        valid_moves = get_valid_moves(board, color)
     else:
-       valid_moves = get_valid_moves(board, 3 - color)
-       
+        valid_moves = get_valid_moves(board, 3 - color)
+        
     if not valid_moves:  # If no moves are valid, return the evaluation
         return heuristic_eval_board(board, color, player_score, opponent_score)
     
@@ -208,7 +214,7 @@ def calculate_mobility(board, color):
     time_start = time.time()
     time_limit = 1.99
 
-     # 6, 8, 10, 12 accounts for board sizes
+      # 6, 8, 10, 12 accounts for board sizes
     board_sizes = [6, 8, 10, 12]
     depths = [5,4,3,3]
     depth = depths[board_sizes.index(board.shape[0])] #Selects initial search depth based on board size
@@ -219,54 +225,60 @@ def calculate_mobility(board, color):
     best_move = None
 
     try:
-       while time.time() - time_start < time_limit:
-        alpha = float('-inf') 
-        beta = float('inf') 
+        while time.time() - time_start < time_limit:
+          alpha = float('-inf') 
+          beta = float('inf') 
 
-        current_best_move = None 
-        current_best_score = float('-inf') 
+          current_best_move = None 
+          current_best_score = float('-inf') 
 
-        # Recompute legal moves in each iteration
-        for move in get_valid_moves(board, player): 
-            simulated_board = deepcopy(board) 
-            execute_move(simulated_board, move, player) 
-            score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, player, self.heuristic_eval_board, time_start, time_limit)
+          # Recompute legal moves in each iteration
+          for move in get_valid_moves(board, player): 
+              simulated_board = deepcopy(board) 
+              execute_move(simulated_board, move, player) 
+              score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, player, self.heuristic_eval_board, time_start, time_limit)
 
-            if score > current_best_score:
-                current_best_score = score
-                current_best_move = move
+              if score > current_best_score:
+                  current_best_score = score
+                  current_best_move = move
 
-                # See if you can do better than this, helps pruning a lot!
-                alpha = max(alpha, current_best_score)
+                  # See if you can do better than this, helps pruning a lot!
+                  alpha = max(alpha, current_best_score)
 
-        # Update the best move and score
-        if current_best_score > best_score:
-            best_score = current_best_score
-            best_move = current_best_move
+          # Update the best move and score
+          if current_best_score > best_score:
+              best_score = current_best_score
+              best_move = current_best_move
 
-        depth += 1
+          depth += 1
 
     except TimeoutError:
-       print("Timeout! Returning the best move found so far.")
-       print("Current search depth is: ", depth)
+        print("Timeout! Returning the best move found so far.")
+        print("Current search depth is: ", depth)
 
     time_taken = time.time() - time_start
     print("My AI's turn took ", time_taken, "seconds.")
 
     if not best_move:
         print("Searched too slow!")
-        return None
+
+        if not current_best_move:
+           print("No moves?")
+           return random_move
+        
+        print(current_best_score)
+        return current_best_move
     
     print(best_score)
     return best_move
 
-# TEST CASES
+  # TEST CASES
 
-# Old bot
-# python3 simulator.py --player_1 bond_agent --player_2 student_agent  --display
+  # Old bot
+  # python3 simulator.py --player_1 bond_agent --player_2 student_agent  --display
 
-# New tester
-# python simulator.py --player_1 the007_agent --player_2 tester_agent  --display
+  # New tester
+  # python simulator.py --player_1 the007_agent --player_2 tester_agent  --display
 
-# Testing against minimax greedy
-# python simulator.py --player_1 the007_agent --player_2 isaac_agent --display --autoplay --autoplay_runs 10 --board_size_min 6 --board_size_max 8
+  # Testing against minimax greedy
+  # python simulator.py --player_1 the007_agent --player_2 isaac_agent --display --autoplay --autoplay_runs 10 --board_size_min 6 --board_size_max 8

@@ -198,79 +198,35 @@ class StudentAgent(Agent):
 
       return min_eval
 
-  def step(self, board, player, opponent):
-    """
-    You can use the following variables to access the chess board:
-    - chess_board: a numpy array of shape (board_size, board_size)
-      where 0 represents an empty spot, 1 represents Player 1's discs (Blue),
-      and 2 represents Player 2's discs (Brown).
-    - player: 1 if this agent is playing as Player 1 (Blue), or 2 if playing as Player 2 (Brown).
-    - opponent: 1 if the opponent is Player 1 (Blue), or 2 if the opponent is Player 2 (Brown).
 
-    You should return a tuple (r,c), where (r,c) is the position where your agent
-    wants to place the next disc. Use functions in helpers to determine valid moves
-    and more helpful tools.
-    """
-    time_start = time.time()
-    time_limit = 1.99
+  def step(self, board, color, opponent):
+      """
+      """
+      time_start = time.time()
+      time_limit = 1.99
 
-      # 6, 8, 10, 12 accounts for board sizes
-    board_sizes = [6, 8, 10, 12]
-    depths = [5,4,3,3]
-    depth = depths[board_sizes.index(board.shape[0])] #Selects initial search depth based on board size
+        # 6, 8, 10, 12 accounts for board sizes
+      board_sizes = [6, 8, 10, 12]
+      depths = [5,4,3,3]
+      depth = depths[board_sizes.index(board.shape[0])] #Selects initial search depth based on board size
 
 
-    # Initialize overall best move variable
-    best_score = float('-inf')
-    best_move = None
+      # Initialize overall best move variable
+      best_score = float('-inf')
+      best_move = None
 
-    try:
-        while time.time() - time_start < time_limit:
-          alpha = float('-inf') 
-          beta = float('inf') 
+      for move in legal_moves:
+          simulated_board = copy.deepcopy(board)
+          execute_move(simulated_board, move, color)
+          _, player_score, opponent_score = check_endgame(simulated_board, color, 3 - color)
+          move_score = self.evaluate_board(simulated_board, color, player_score, opponent_score)
 
-          current_best_move = None 
-          current_best_score = float('-inf') 
+          if move_score > best_score:
+              best_score = move_score
+              best_move = move
 
-          # Recompute legal moves in each iteration
-          for move in get_valid_moves(board, player): 
-              simulated_board = deepcopy(board) 
-              execute_move(simulated_board, move, player) 
-              score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, player, self.heuristic_eval_board, time_start, time_limit)
-
-              if score > current_best_score:
-                  current_best_score = score
-                  current_best_move = move
-
-                  # See if you can do better than this, helps pruning a lot!
-                  alpha = max(alpha, current_best_score)
-
-          # Update the best move and score
-          if current_best_score > best_score:
-              best_score = current_best_score
-              best_move = current_best_move
-
-          depth += 1
-
-    except TimeoutError:
-        print("Timeout! Returning the best move found so far.")
-        print("Current search depth is: ", depth)
-
-    time_taken = time.time() - time_start
-    print("My AI's turn took ", time_taken, "seconds.")
-
-    if not best_move:
-        print("Searched too slow!")
-
-        if not current_best_move:
-           print("No moves?")
-           return random_move
-        
-        print(current_best_score)
-        return current_best_move
-    
-    print(best_score)
-    return best_move
+      # Return the best move found
+      return best_move if best_move else random.choice(legal_moves)
 
   # TEST CASES
 

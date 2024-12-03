@@ -215,18 +215,20 @@ class StudentAgent(Agent):
       best_score = float('-inf')
       best_move = None
 
+
+      legal_moves = get_valid_moves(board, color)
       for move in legal_moves:
-          simulated_board = copy.deepcopy(board)
+          simulated_board = deepcopy(board)
           execute_move(simulated_board, move, color)
           _, player_score, opponent_score = check_endgame(simulated_board, color, 3 - color)
-          move_score = self.evaluate_board(simulated_board, color, player_score, opponent_score)
+          move_score = self.heuristic_eval_board(simulated_board, color, player_score, opponent_score)
 
           if move_score > best_score:
               best_score = move_score
               best_move = move
 
       # Return the best move found
-      return best_move if best_move else random.choice(legal_moves)
+      return best_move if best_move else random_move
 
   # TEST CASES
 

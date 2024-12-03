@@ -27,43 +27,83 @@ class StudentAgent(Agent):
     total_positions = board.shape[0] * board.shape[1] # Shape -> (row, col)
     game_progress = total_pieces/total_positions # pieces/positions
 
-    if game_progress < 0.3: # 0% - 30% of board is filled 
+    if game_progress < 0.2: # 0% - 30% of board is filled 
        weights_early = {
         "corner_weight": 10,
         "mobility_weight": 8,
-        "stability_weight": 1,
+        "stability_weight": 6,
         "score_weight": 1
       }
        return weights_early
     elif game_progress < 0.7:
        weights_mid = {
-          "corner_weight": 15,
-          "mobility_weight": 10,
-          "stability_weight": 5,
+          "corner_weight": 20,
+          "mobility_weight": 12,
+          "stability_weight": 10,
           "score_weight": 1
           }
        return weights_mid
     else:  # Late game! Final phases
       weights_late = {
-          "corner_weight": 25,
-          "mobility_weight": 2,
-          "stability_weight": 10,
+          "corner_weight": 30,
+          "mobility_weight": 1,
+          "stability_weight": 15,
           "score_weight": 5
           }
       return weights_late
     
   def calculate_stability(self, board, color):
-    stable_count = 0
+    n = board.shape[0]
+    opponent = 3 - color
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1),
+                  (-1, -1), (-1, 1), (1, -1), (1, 1)]
+    corners = {(0, 0), (0, n - 1), (n - 1, 0), (n - 1, n - 1)}
 
-     # Check corners first, as they are always stable
-    corners = [(0, 0), (0, board_size - 1), (board_size - 1, 0), (board_size - 1, board_size - 1)]
-    for corner in corners:
-        r, c = corner
-        if board[r][c] == color:
-            stable_count += 1
+    stability_map = np.full_like(board, 0, dtype=int)
 
+    stable_value = 1
+    unstable_value = -1
+    semi_stable_value = 0
 
-    return stable_count
+    # Identify corners as stable
+    for x, y in corners:
+        if board[x, y] != 0:
+            stability_map[x, y] = stable_value
+
+    # Create a mask for empty cells
+    empty_mask = board == 0
+
+    # Compute unstable discs (next to at least one empty space)
+    unstable_mask = np.zeros_like(board, dtype=bool)
+    for dx, dy in directions:
+        shifted = np.roll(np.roll(empty_mask, dx, axis=0), dy, axis=1)
+        # Ignore out-of-bounds caused by rolling
+        if dx > 0:
+            shifted[:dx, :] = False
+        elif dx < 0:
+            shifted[dx:, :] = False
+        if dy > 0:
+            shifted[:, :dy] = False
+        elif dy < 0:
+            shifted[:, dy:] = False
+        unstable_mask |= (shifted & (board != 0))
+
+    # Assign unstable discs
+    stability_map[unstable_mask] = unstable_value
+
+    # Semi-stable discs (neither stable nor unstable)
+    for x in range(n):
+        for y in range(n):
+            if stability_map[x, y] == 0 and board[x, y] != 0:
+                stability_map[x, y] = semi_stable_value
+
+    # Calculate the stability score
+    player_stability = np.sum((board == color) * stability_map)
+    opponent_stability = np.sum((board == opponent) * stability_map)
+    stability_score = player_stability - opponent_stability
+
+    return stability_score
+
 
     # Implement my heuristic here!
   def heuristic_eval_board(self, board, color, player_score, opponent_score):
@@ -93,13 +133,14 @@ class StudentAgent(Agent):
 
     
     total_board_score = (
-      corner_score 
-    + corner_penalty 
+      corner_score * 
+    + corner_penalty  * 
     + weights["mobility_weight"] * mobility_score
-    # + weights["stability_weight"] * self.count_stable(board, color)
+    + weights["stability_weight"] * self.calculate_stability(board, color) * 100
     + weights["score_weight"] * (player_score - opponent_score )
     )
     
+    # printf("") print all the heuristic values
     return total_board_score
 
   def alpha_beta_search(self, board, depth, alpha, beta, max_player, color, heuristic_eval_board, time_start, time_limit):
@@ -189,11 +230,11 @@ class StudentAgent(Agent):
     and more helpful tools.
     """
     time_start = time.time()
-    time_limit = 1.99 
+    time_limit = 1.99
 
      # 6, 8, 10, 12 accounts for board sizes
     board_sizes = [6, 8, 10, 12]
-    depths = [5,4,3,2]
+    depths = [5,4,3,3]
     depth = depths[board_sizes.index(board.shape[0])] #Selects initial search depth based on board size
 
 
@@ -231,12 +272,13 @@ class StudentAgent(Agent):
 
     except TimeoutError:
        print("Timeout! Returning the best move found so far.")
+       print("Current search depth is: ", depth)
 
     time_taken = time.time() - time_start
     print("My AI's turn took ", time_taken, "seconds.")
 
     if not best_move:
-        print("No valid moves available. Passing the turn.")
+        print("Searched too slow!")
         return None
     
     print(best_score)
@@ -249,3 +291,6 @@ class StudentAgent(Agent):
 
 # New tester
 # python simulator.py --player_1 the007_agent --player_2 tester_agent  --display
+
+# Testing against minimax greedy
+# python simulator.py --player_1 the007_agent --player_2 isaac_agent --display --autoplay --autoplay_runs 10 --board_size_min 6 --board_size_max 8

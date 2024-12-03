@@ -82,19 +82,33 @@ class StudentAgent(Agent):
 
       max_actual_mobility = len(get_valid_moves(board, color))
       min_actual_mobility = len(get_valid_moves(board, 3 - color))
+      actual_mobility_score = 0
 
       if (max_actual_mobility + min_actual_mobility) != 0:
           actual_mobility_score = (
           100 * (max_actual_mobility - min_actual_mobility)/(max_actual_mobility + min_actual_mobility)
           )
-      else:
-        actual_mobility_score = 0
 
       return actual_mobility_score
 
+  def calculate_corner_control(self, board, color):
+    corners = [(0, 0), (0, board.shape[1] - 1), (board.shape[0] - 1, 0), (board.shape[0] - 1, board.shape[1] - 1)]
+
+    max_corners = sum(1 for corner in corners if board[corner] == color)
+    min_corners = sum(1 for corner in corners if board[corner] == 3 - color) 
+    corner_score = 0
+
+    if (max_corners + min_corners ) != 0:
+      corner_score = (
+        100 * ((max_corners - min_corners)/(max_corners + min_corners))
+      )
+
+    return corner_score
+
+
 
     # Implement my heuristic here!
-  def heuristic_eval_board(self, board, color, player_score, opponent_score):
+  def heuristic_eval_board(self, board, color):
     """
     Evaluate the board state based on multiple factors. This is your heuristic
 
@@ -114,12 +128,16 @@ class StudentAgent(Agent):
     # Mobility Evaulation
     mobility_score = self.calculate_mobility(board, color)
 
+    # Corner Control Evaluation
+    corner_score = self.calculate_corner_control(board,color)
+
     # Dynamic Weighting
     dynamic_weights = self.dynamic_weighting(board, color)
     
     total_board_score = (
       parity_score * dynamic_weights["parity_weight"]
       + mobility_score * dynamic_weights["mobility_weight"]
+      + corner_score * dynamic_weights["corner_weight"]
     )
     
     # printf("") print all the heuristic values

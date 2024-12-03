@@ -7,7 +7,7 @@ from copy import deepcopy
 import time
 from helpers import random_move, count_capture, execute_move, check_endgame, get_valid_moves
 
-@register_agent("the007_agent")
+@register_agent("bond_agent")
 class StudentAgent(Agent):
   """
   A class for your implementation. Feel free to use this class to
@@ -16,7 +16,7 @@ class StudentAgent(Agent):
 
   def __init__(self):
     super(StudentAgent, self).__init__()
-    self.name = "the007_agent"
+    self.name = "bond_agent"
 
   def dynamic_weighting(self, board, color):
     """
@@ -32,7 +32,7 @@ class StudentAgent(Agent):
         "corner_weight": 10,
         "mobility_weight": 8,
         "stability_weight": 6,
-        "score_weight": 1
+        "parity_weight": 1
       }
        return weights_early
     elif game_progress < 0.7:
@@ -40,7 +40,7 @@ class StudentAgent(Agent):
           "corner_weight": 20,
           "mobility_weight": 12,
           "stability_weight": 10,
-          "score_weight": 1
+          "parity_weight": 1
           }
        return weights_mid
     else:  # Late game! Final phases
@@ -48,14 +48,46 @@ class StudentAgent(Agent):
           "corner_weight": 30,
           "mobility_weight": 1,
           "stability_weight": 15,
-          "score_weight": 5
+          "parity_weight": 5
           }
       return weights_late
     
-  def calculate_stability(self, board, color):
-   pass
+  def calculate_piece_parity(self, board, color):
+   """
+   Calculates the concept of coin parity - very similar to check_endgame
+   input: board, current colour
 
-  
+   source: https://courses.cs.washington.edu/courses/cse573/04au/Project/mini1/RUSSIA/miniproject1_vaishu_muthu/Paper/Final_Paper.pdf
+   """
+
+   max_pieces = np.sum(board == color)
+   min_pieces = np.sum(board == 3-color)
+
+
+   difference_pieces = max_pieces - min_pieces
+   total_pieces = max_pieces + min_pieces
+
+   # Error catch
+   if total_pieces == 0:
+    print("No pieces on the board?")
+    return 0
+
+   parity_score = 100 * (difference_pieces/total_pieces)
+   return parity_score
+
+def calculate_mobility(board, color):
+    """
+    Calculate Mobility
+    """
+
+    max_actual_mobility = get_valid_moves(board, color)
+    min_actual_mobility = get_valid_moves(board, color)
+
+    if (max_actual_mobility + min_actual_mobility) != 0:
+        actual_mobility_score = 
+        100 * (max_actual_mobility - min_actual_mobility)/(max_actual_mobility + min_actual_mobility)
+
+
     # Implement my heuristic here!
   def heuristic_eval_board(self, board, color, player_score, opponent_score):
     """
@@ -70,27 +102,18 @@ class StudentAgent(Agent):
     Returns:
     - int: The evaluated score of the board. (Positive for player 1, negative for player 2)
     """
- 
-    corners = [(0, 0), (0, board.shape[1] - 1), (board.shape[0] - 1, 0), (board.shape[0] - 1, board.shape[1] - 1)]
-    weights = self.dynamic_weighting(board, color)
 
-    # 10 points for the current player for every corner they control (Have a piece there)
-    corner_score = sum(1 for corner in corners if board[corner] == color) * weights["corner_weight"]
-    corner_penalty = sum(1 for corner in corners if board[corner] == 3 - color) * -weights["corner_weight"]
+    # Parity Evaluation
+    parity_score = self.calculate_piece_parity(board, color)
 
-    # Mobility: the number of moves the opponent can make
-    opponent_moves = len(get_valid_moves(board, 3 - color))
-    mobility_score = -opponent_moves
+    # Mobility Evaulation
+    mobility_score = self.calculate_mobility(board, color)
 
+    # Dynamic Weighting
+    dynamic_weights = self.dynamic_weighting(board, color)
     
-    piece_difference = self.calculate_piece_difference()
-
     total_board_score = (
-      corner_score * 
-    + corner_penalty  * 
-    + weights["mobility_weight"] * mobility_score
-    + weights["stability_weight"] * 100
-    + weights["score_weight"] * (player_score - opponent_score )
+      parity_score * dynamic_weights["parity_weight"]
     )
     
     # printf("") print all the heuristic values
@@ -240,7 +263,7 @@ class StudentAgent(Agent):
 # TEST CASES
 
 # Old bot
-# python simulator.py --player_1 the007_agent --player_2 student_agent  --display
+# python3 simulator.py --player_1 bond_agent --player_2 student_agent  --display
 
 # New tester
 # python simulator.py --player_1 the007_agent --player_2 tester_agent  --display

@@ -129,6 +129,7 @@ class StudentAgent(Agent):
         if board[r][c] == color:
             stability_map[r][c] = True
             stable_discs.append((r, c))
+
     # Propagate stability
     while stable_discs:
         r, c = stable_discs.pop()
@@ -188,17 +189,6 @@ class StudentAgent(Agent):
   def alpha_beta_search(self, board, depth, alpha, beta, max_player, color, heuristic_eval_board, time_start, time_limit, ordered_moves):
     """
     Let's use alpha-beta pruning to search the game tree
-
-    parameters:
-    - board: Current game board : (numpy.array) numpy.array
-    - depth: Max depth for search, how many moves into the future do we want to see : int
-    - alpha: value for max player : int
-    - beta: value for min player : int
-    - color: agent color (1 or 2) : int
-    - eval_board: heuristic function that returns a score for a given board : fun 'a .... -> int
-
-
-    returns: best move score
     """
     # Alpha-Beta Pruning implementation inspired by
     # "Simple Minimax with Alpha-Beta Pruning" by Sebastian Lague
@@ -215,7 +205,12 @@ class StudentAgent(Agent):
         valid_moves = get_valid_moves(board, 3 - color)
 
     if ordered_moves:
-        valid_moves = sorted(valid_moves, key=lambda m: ordered_moves.index(m) if m in ordered_moves else len(ordered_moves))
+      # If the move is in the ordered list, put at front, otherwise put it in the back of the search queue
+      moves_in_order = filter(lambda m: m in ordered_moves, valid_moves)
+      moves_not_in_order = filter(lambda m: m not in ordered_moves, valid_moves)
+
+      valid_moves = sorted(moves_in_order, key=lambda m: ordered_moves.index(m)) + list(moves_not_in_order)
+
 
      # Base case: Evaluate the board when the game ends so the search algorithm can "see branch endgame scores"
     if not valid_moves or depth == 0:
@@ -284,7 +279,7 @@ class StudentAgent(Agent):
       # If no valid moves indicate that but abort gracefully
       valid_moves = get_valid_moves(board, color)
       if not valid_moves:
-          print("No valid moves in step, executing random move")
+          print("No valid moves in step")
           return None 
       
       ordered_moves = []
@@ -303,8 +298,14 @@ class StudentAgent(Agent):
           if some_move is not None:
             best_move = some_move
             best_score = some_score
-            # Update move order to prioritize the current best move
-            ordered_moves = [best_move] + [move for move in ordered_moves if move != best_move]
+
+            # best move, list -> best move :: List.filter (not List.mem x list) ordered_moves
+            # ordered_moves = [best_move] + [move for move in ordered_moves if move != best_move]
+            ordered_moves = [best_move] + list(
+                                            filter(
+                                                lambda move, bm=best_move: move != bm, ordered_moves
+                                            )
+)
 
         # Increase the depth while we still have time
         depth += 1

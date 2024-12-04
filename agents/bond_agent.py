@@ -238,11 +238,11 @@ class StudentAgent(Agent):
       alpha = float('-inf') 
       beta = float('inf')
 
-       # If no valid moves indicate that but abort gracefully
-        valid_moves = get_valid_moves(board, color)
-        if not valid_moves:
-            print("No valid moves in step, executing random move")
-            return random_move  # Fallback if no valid moves
+      # If no valid moves indicate that but abort gracefully
+      valid_moves = get_valid_moves(board, color)
+      if not valid_moves:
+          print("No valid moves in step, executing random move")
+          return random_move  # Fallback if no valid moves
 
     
       try:

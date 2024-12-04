@@ -204,6 +204,12 @@ class StudentAgent(Agent):
     else:
         valid_moves = get_valid_moves(board, 3 - color)
 
+    # Track breadth
+    current_breadth = len(valid_moves)
+    breadth_tracker["current_depth_breadth"] = current_breadth
+    if current_breadth > breadth_tracker["max_breadth"]:
+      breadth_tracker["max_breadth"] = current_breadth
+
     if ordered_moves:
       # If the move is in the ordered list, put at front, otherwise put it in the back of the search queue
       moves_in_order = filter(lambda m: m in ordered_moves, valid_moves)
@@ -283,6 +289,8 @@ class StudentAgent(Agent):
           return None 
       
       ordered_moves = []
+      breadth_tracker = {"max_breadth": 0, "current_depth_breadth": 0}
+
       try:
         # Keep iterating while we're still under 2 seconds
         while time.time() - time_start < time_limit:
@@ -312,6 +320,7 @@ class StudentAgent(Agent):
       time_taken = time.time() - time_start
       # Return the best move found
       print("depth searched:", depth - 1)
+      print(f"Maximum breadth encountered: {breadth_tracker['max_breadth']}")
       print("My AI's turn took ", time_taken, "seconds.")
       print(best_score)
       return best_move if best_move else random_move

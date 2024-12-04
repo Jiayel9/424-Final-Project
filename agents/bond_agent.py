@@ -38,7 +38,7 @@ class StudentAgent(Agent):
     elif game_progress < 0.7:
        weights_mid = {
           "corner_weight": 20,
-          "mobility_weight": 12,
+          "mobility_weight": 10,
           # "stability_weight": 10,
           "parity_weight": 1
           }
@@ -48,7 +48,7 @@ class StudentAgent(Agent):
           "corner_weight": 30,
           "mobility_weight": 1,
           # "stability_weight": 15,
-          "parity_weight": 5
+          "parity_weight": 10
           }
       return weights_late
     

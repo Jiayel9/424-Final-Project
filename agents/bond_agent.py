@@ -31,7 +31,7 @@ class StudentAgent(Agent):
        weights_early = {
         "corner_weight": 10,
         "mobility_weight": 8,
-        # "stability_weight": 6,
+        "stability_weight": 6,
         "parity_weight": 1
       }
        return weights_early
@@ -39,7 +39,7 @@ class StudentAgent(Agent):
        weights_mid = {
           "corner_weight": 20,
           "mobility_weight": 10,
-          # "stability_weight": 10,
+          "stability_weight": 10,
           "parity_weight": 1
           }
        return weights_mid
@@ -47,7 +47,7 @@ class StudentAgent(Agent):
       weights_late = {
           "corner_weight": 30,
           "mobility_weight": 1,
-          # "stability_weight": 15,
+          "stability_weight": 15,
           "parity_weight": 10
           }
       return weights_late
@@ -105,7 +105,44 @@ class StudentAgent(Agent):
 
     return corner_score
 
+  def is_stable_in_direction(self, board, stability_map, row, col, dr, dc, color):
+    board_size = board.shape[0]
+    r = row + dr  # Move to the neighboring cell
+    c = col + dc
+    while 0 <= r < board_size and 0 <= c < board_size:
+        if board[r][c] == 0 or (board[r][c] != color and not stability_map[r][c]):
+            return False
+        r += dr
+        c += dc
+    return True
 
+  def calculate_stability(self, board, color):
+    board_size = board.shape[0]
+    stability_map = np.zeros_like(board, dtype=bool)
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1),
+                  (-1, -1), (-1, 1), (1, -1), (1, 1)]
+    # Initialize stability map with corners
+    corners = [(0, 0), (0, board_size - 1), 
+               (board_size - 1, 0), (board_size - 1, board_size - 1)]
+    stable_discs = []
+    for r, c in corners:
+        if board[r][c] == color:
+            stability_map[r][c] = True
+            stable_discs.append((r, c))
+    # Propagate stability
+    while stable_discs:
+        r, c = stable_discs.pop()
+        for dr, dc in directions:
+            nr, nc = r + dr, c + dc
+            if (0 <= nr < board_size and 0 <= nc < board_size and
+                not stability_map[nr][nc] and board[nr][nc] == color):
+                # Check if the disc is stable in this direction
+                if self.is_stable_in_direction(board, stability_map, nr, nc, dr, dc, color):
+                    stability_map[nr][nc] = True
+                    stable_discs.append((nr, nc))
+    # Count the stable discs
+    stable_count = np.sum(stability_map)
+    return stable_count
 
 
     # Implement my heuristic here!
@@ -132,6 +169,9 @@ class StudentAgent(Agent):
     # Corner Control Evaluation
     corner_score = self.calculate_corner_control(board,color)
 
+    #Stability
+    stability_score = self.calculate_stability(board, color) - self.calculate_stability(board, 3-color)
+
     # Dynamic Weighting
     dynamic_weights = self.dynamic_weighting(board, color)
     
@@ -139,6 +179,7 @@ class StudentAgent(Agent):
       parity_score * dynamic_weights["parity_weight"]
       + mobility_score * dynamic_weights["mobility_weight"]
       + corner_score * dynamic_weights["corner_weight"]
+      + stability_score * dynamic_weights["stability_weight"]
     )
     
     # printf("") print all the heuristic values

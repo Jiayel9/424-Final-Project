@@ -149,16 +149,6 @@ class StudentAgent(Agent):
     # Implement my heuristic here!
   def heuristic_eval_board(self, board, color):
     """
-    Evaluate the board state based on multiple factors. This is your heuristic
-
-    Parameters:
-    - board: 2D numpy array representing the game board.
-    - color: Integer representing the agent's color (1 for Player 1/Blue, 2 for Player 2/Brown).
-    - player_score: Score of the current player (the number of pieces the player has on the board)
-    - opponent_score: Score of the opponent (the number of pieces the other player has on the board)
-
-    Returns:
-    - int: The evaluated score of the board. (Positive for player 1, negative for player 2)
     """
 
     # Parity Evaluation

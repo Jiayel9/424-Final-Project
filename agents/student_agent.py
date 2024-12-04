@@ -234,7 +234,7 @@ class StudentAgent(Agent):
        weights_early = {
         "corner_weight": 10,
         "mobility_weight": 8,
-        # "stability_weight": 1,
+        "stability_weight": 1,
         "score_weight": 1
       }
        return weights_early
@@ -242,7 +242,7 @@ class StudentAgent(Agent):
        weights_mid = {
           "corner_weight": 15,
           "mobility_weight": 10,
-          # "stability_weight": 5,
+          "stability_weight": 5,
           "score_weight": 1
           }
        return weights_mid
@@ -250,7 +250,7 @@ class StudentAgent(Agent):
       weights_late = {
           "corner_weight": 25,
           "mobility_weight": 2,
-          # "stability_weight": 10
+          "stability_weight": 10,
           "score_weight": 10
           }
       return weights_late

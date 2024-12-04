@@ -144,7 +144,7 @@ class StudentAgent(Agent):
     # printf("") print all the heuristic values
     return total_board_score
 
-  def alpha_beta_search(self, board, depth, alpha, beta, max_player, color, heuristic_eval_board, time_start, time_limit):
+  def alpha_beta_search(self, board, depth, alpha, beta, max_player, color, heuristic_eval_board, time_start, time_limit, ordered_moves):
     """
     Let's use alpha-beta pruning to search the game tree
 
@@ -167,20 +167,21 @@ class StudentAgent(Agent):
     if time.time() - time_start >= time_limit:
         raise TimeoutError  
 
-    # Base case: Evaluate the board when the game ends so the search algorithm can "see branch endgame scores"
-    is_endgame, player_score, opponent_score = check_endgame(board, color, 3 - color)
-    if is_endgame or depth == 0:
-        return heuristic_eval_board(board, color)
-    
     # Get all valid moves for the current player
     if max_player:
         valid_moves = get_valid_moves(board, color)
     else:
         valid_moves = get_valid_moves(board, 3 - color)
+
+    if ordered_moves:
+        valid_moves = sorted(valid_moves, key=lambda m: ordered_moves.index(m) if m in ordered_moves else len(ordered_moves))
+
+     # Base case: Evaluate the board when the game ends so the search algorithm can "see branch endgame scores"
+    if not valid_moves or depth == 0:
+        return heuristic_eval_board(board, color), None
         
-    if not valid_moves:  # If no moves are valid, return the evaluation
-        return heuristic_eval_board(board, color)
     
+    best_move = None
     if max_player:
       max_eval = float('-inf')
       for move in valid_moves:
@@ -188,16 +189,19 @@ class StudentAgent(Agent):
         execute_move(simulate_board, move, color)
 
         # Recursive call for min player
-        score = self.alpha_beta_search(simulate_board, depth - 1, alpha, beta, False, color, heuristic_eval_board, time_start, time_limit)
+        curr_eval, _ = self.alpha_beta_search(simulate_board, depth - 1, alpha, beta, False, color, heuristic_eval_board, time_start, time_limit, ordered_moves)
 
-        max_eval = max(max_eval, score)
+        if curr_eval > max_eval:
+          max_eval = curr_eval
+          best_move = move
+
+        max_eval = max(max_eval, curr_eval)
         alpha = max(alpha, max_eval)
-
         # Prune if beta is less than or equal to alpha
         if beta <= alpha:
             break
 
-      return max_eval
+      return max_eval, best_move
     
     else: 
       min_eval = float('inf')
@@ -206,16 +210,18 @@ class StudentAgent(Agent):
         execute_move(simulated_board, move, 3 - color)
 
         # Recursive call for the max player
-        score = self.alpha_beta_search(simulated_board, depth - 1, alpha, beta, True, color, heuristic_eval_board, time_start, time_limit)
-
-        min_eval = min(min_eval, score)
+        curr_eval, _ = self.alpha_beta_search(simulated_board, depth - 1, alpha, beta, True, color, heuristic_eval_board, time_start, time_limit, ordered_moves)
+        if curr_eval < min_eval:
+          min_eval = curr_eval
+          best_move = move
+        min_eval = min(min_eval, curr_eval)
         beta = min(beta, min_eval)
 
         # Prune if beta is less than or equal to alpha
         if beta <= alpha:
             break
 
-      return min_eval
+      return min_eval, best_move
 
 
   def step(self, board, color, opponent):
@@ -234,38 +240,30 @@ class StudentAgent(Agent):
       best_score = float('-inf')
       best_move = None
 
-      # if you keep alpha and beta outside the loop, it makes pruning more efficient
-      alpha = float('-inf') 
-      beta = float('inf')
-
       # If no valid moves indicate that but abort gracefully
       valid_moves = get_valid_moves(board, color)
       if not valid_moves:
           print("No valid moves in step, executing random move")
-          return random_move  # Fallback if no valid moves
+          return None 
+      
+      ordered_moves = []
 
     
+      best_score = float('-inf')
+      best_move = None
       try:
         # Keep iterating while we're still under 2 seconds
         while time.time() - time_start < time_limit:
           # Current depths best scores and moves
-          depth_best_score = float('-inf')
-          depth_best_move = None
+          alpha = float('-inf') 
+          beta = float('inf')
 
-          for move in get_valid_moves(board, color):
-              simulated_board = deepcopy(board)
-              execute_move(simulated_board, move, color)
-              move_score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, color, self.heuristic_eval_board, time_start, time_limit)
-
-              if move_score > depth_best_score:
-                  depth_best_score = move_score
-                  depth_best_move = move
-
-
-        # What's the best score we found at this depth?
-        if depth_best_score > best_score:
-            best_score = depth_best_score
-            best_move = depth_best_move
+          some_score, some_move = self.alpha_beta_search(board, depth, alpha, beta, True, color, self.heuristic_eval_board, time_start, time_limit, ordered_moves)
+          if some_move is not None:
+            best_move = some_move
+            best_score = some_score
+            # Update move order to prioritize the current best move
+            ordered_moves = [best_move] + [move for move in ordered_moves if move != best_move]
 
         # Increase the depth while we still have time
         depth += 1
@@ -273,9 +271,9 @@ class StudentAgent(Agent):
       except TimeoutError:
         pass
 
-      # Return the best move found
-      print("depth searched:", depth)
       time_taken = time.time() - time_start
+      # Return the best move found
+      print("depth searched:", depth - 1)
       print("My AI's turn took ", time_taken, "seconds.")
       print(best_score)
       return best_move if best_move else random_move

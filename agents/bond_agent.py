@@ -253,6 +253,10 @@ class StudentAgent(Agent):
         pass
 
       # Return the best move found
+      print("depth searched:", depth)
+      time_taken = time.time() - time_start
+      print("My AI's turn took ", time_taken, "seconds.")
+      print(best_score)
       return best_move if best_move else random_move
 
   # TEST CASES
@@ -261,7 +265,9 @@ class StudentAgent(Agent):
   # python3 simulator.py --player_1 bond_agent --player_2 student_agent  --display
 
   # New tester
-  # python simulator.py --player_1 the007_agent --player_2 tester_agent  --display
+  # python simulator.py --player_1 bond_agent --player_2 tester_agent  --display
 
   # Testing against minimax greedy
-  # python simulator.py --player_1 the007_agent --player_2 isaac_agent --display --autoplay --autoplay_runs 10 --board_size_min 6 --board_size_max 8
+  # python simulator.py --player_1 bond_agent --player_2 gpt_greedy_corners_agent --display --autoplay --autoplay_runs 10 --board_size_min 6 --board_size_max 8
+
+  # python simulator.py --player_1 bond_agent --player_2 isaac_agent --display --autoplay --autoplay_runs 10 --board_size_min 6 --board_size_max 8

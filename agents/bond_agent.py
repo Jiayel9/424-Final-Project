@@ -234,20 +234,41 @@ class StudentAgent(Agent):
       best_score = float('-inf')
       best_move = None
 
+      # if you keep alpha and beta outside the loop, it makes pruning more efficient
       alpha = float('-inf') 
       beta = float('inf')
 
+       # If no valid moves indicate that but abort gracefully
+        valid_moves = get_valid_moves(board, color)
+        if not valid_moves:
+            print("No valid moves in step, executing random move")
+            return random_move  # Fallback if no valid moves
+
     
       try:
-        for move in get_valid_moves(board, color):
-            simulated_board = deepcopy(board)
-            execute_move(simulated_board, move, color)
-            move_score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, color, self.heuristic_eval_board, time_start, time_limit)
+        # Keep iterating while we're still under 2 seconds
+        while time.time() - time_start < time_limit:
+          # Current depths best scores and moves
+          depth_best_score = float('-inf')
+          depth_best_move = None
 
-            if move_score > best_score:
-                best_score = move_score
-                best_move = move
+          for move in get_valid_moves(board, color):
+              simulated_board = deepcopy(board)
+              execute_move(simulated_board, move, color)
+              move_score = self.alpha_beta_search(simulated_board, depth, alpha, beta, True, color, self.heuristic_eval_board, time_start, time_limit)
 
+              if move_score > depth_best_score:
+                  depth_best_score = move_score
+                  depth_best_move = move
+
+
+        # What's the best score we found at this depth?
+        if depth_best_score > best_score:
+            best_score = depth_best_score
+            best_move = depth_best_move
+
+        # Increase the depth while we still have time
+        depth += 1
 
       except TimeoutError:
         pass

@@ -169,8 +169,8 @@ class StudentAgent(Agent):
     # Corner Control Evaluation
     corner_score = self.calculate_corner_control(board,color)
 
-    #Stability
-    stability_score = self.calculate_stability(board, color) - self.calculate_stability(board, 3-color)
+    # Stability
+    stability_score = self.calculate_stability(board, color) - self.calculate_stability(board, 3 - color)
 
     # Dynamic Weighting
     dynamic_weights = self.dynamic_weighting(board, color)
@@ -288,10 +288,6 @@ class StudentAgent(Agent):
           return None 
       
       ordered_moves = []
-
-    
-      best_score = float('-inf')
-      best_move = None
       try:
         # Keep iterating while we're still under 2 seconds
         while time.time() - time_start < time_limit:
